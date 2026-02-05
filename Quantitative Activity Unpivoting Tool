@@ -1,0 +1,27 @@
+Activity Data Unpivoting Tool
+Purpose
+
+This script cleans and restructures a complex Excel file so quantitative activity data can be easily analyzed by a research/writing team.
+
+It converts a messy wide-format spreadsheet (many percentage/amount columns per person) into a tidy long-format table with one row per person per activity.
+
+ What it does
+
+The script:
+
+Reads raw Excel data (your_file.xlsx)
+
+Fixes duplicate column names
+
+Correctly maps each percentage/amount pair to its activity (even when activity labels are blank in Excel)
+
+Unpivots the data from wide → long format
+
+Cleans numeric fields (percentage, amount)
+
+Sorts results by person and activity
+
+ Output (long format example)
+first_name	last_name	role	activity_name	percentage	amount
+Ana	Lopez	Manager	Training	0.10	1000
+Ana	Lopez	Manager	Hiring	0.20	2000
