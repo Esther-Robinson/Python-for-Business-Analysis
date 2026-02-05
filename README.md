@@ -9,3 +9,5 @@ Exploratory Data Analysis (EDA) – uncovering patterns and trends
 Business KPI Analysis – revenue, customer churn, and sales forecasting
  Data Cleaning & Transformation – handling missing values, outliers, and data wrangling
 Predictive Modeling – regression, classification, and clustering for business insights
+
+1. Quantitative activity unpivoting tool. 
