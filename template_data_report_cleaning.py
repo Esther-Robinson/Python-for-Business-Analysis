@@ -24,13 +24,10 @@ df.columns = column_headers_row # now set the column headers to the second row o
 #  we can rename them to "percentage_1" and "percentage_2". This will allow us to easily identify which percentage column corresponds to which amount column.
 #  We will also do this for any other duplicate column names, such as "first_name" or "last_name" if they exist. 
 # We will use a simple loop to check for duplicates and rename them
-cols = pd.Series(df.columns) #pd.Series is like a list but with more functionality. It allows us to easily identify duplicates and modify them.
-#doing pd.series behaves like a fancy list where you can filter, modify individual items. search easily and use boolean indexing. It also allows us to easily identify duplicates and modify them.
-for dup in cols[cols.duplicated()].unique():  #cols.duplicated() returns a boolean series where True indicates a duplicate value. cols[cols.duplicated()] filters the columns to only those that are duplicates. .unique() gives us the unique duplicate column names. 
-#Basically saying that 0 is my first time seeing "percentage", 1 is my second time seeing "percentage", etc. So I can append _1, _2, etc. to make them unique.
-#putting cols[cols.duplicates ()] us saying this filters only the columns that are duplicates. Then .unique() gives us the unique duplicate column names. So if we have "percentage" duplicated 3 times, we will get "percentage" as a unique duplicate column name. Then we can loop through the indices of these duplicates and rename them accordingly.
-#for dup in is saying the for loop will iterate through each unique duplicate column name.
-#  So if we have "percentage" duplicated 3 times, we will get "percentage" as a unique duplicate column name. 
+cols = pd.Series(df.columns) 
+for dup in cols[cols.duplicated()].unique(): 
+#the for loop will iterate through each unique duplicate column name.
+#So if we have "percentage" duplicated 3 times, we will get "percentage" as a unique duplicate column name. 
 # Then we can loop through the indices of these duplicates and rename them accordingly. for dup in ['percentage_1', 'amount_1']:
     dup_indices = cols[cols == dup].index.values
 # dup_indices will give us the indices of the columns that are duplicates. 
@@ -38,21 +35,15 @@ for dup in cols[cols.duplicated()].unique():  #cols.duplicated() returns a boole
 # We can then loop through these indices and rename the columns accordingly. this checks every position cols == 'percentage_1' and returns a boolean series where True indicates a match. Then .index.values gives us the indices of these matches. cols[cols == dup] is saying that we are filtering the columns to only those that match the current duplicate column name. Then .index.values gives us the indices of these matches. So if we have "percentage" duplicated in columns 3, 5, and 7, then dup_indices will be [3, 5, 7]. We can then loop through these indices and rename the columns accordingly.
 #Index.values this extracts the positions where that name appears in the columns. So if "percentage" appears in columns 3, 5, and 7, then dup_indices will be [3, 5, 7]. We can then loop through these indices and rename the columns accordingly.
     for i, idx in enumerate(dup_indices[1:], 1):  # rename only the duplicates, not the first occurrence. So we start from dup_indices[1:] to skip the first occurrence. We also start the enumeration from 1 so that the first duplicate gets _1, the second duplicate gets _2, etc.
-        cols[idx] = f"{dup}_dup{i}" # actually rename so it becomes like cols[2] = "percentage_dup1", cols[4] = "percentage_dup2", etc. This will make all duplicate column names unique by appending _dup1, _dup2, etc. to the end of the duplicate column name. So if we have "percentage" duplicated in columns 3, 5, and 7, then after this loop we will have "percentage" in column 3, "percentage_dup1" in column 5, and "percentage_dup2" in column 7. This will allow us to easily identify which percentage column corresponds to which amount column.
+        cols[idx] = f"{dup}_dup{i}" 
 df.columns = cols # this replaces the old column names with the new column names that we just created. Now all duplicate column names are unique, which will make it easier to work with the data. We can now easily identify which percentage column corresponds to which amount column based on their names. For example, if we have "percentage" in column 3 and "amount" in column 4, we can assume that they correspond to the same activity. If we have "percentage_dup1" in column 5 and "amount_dup1" in column 6, we can assume that they correspond to the same activity as well. This will allow us to easily map the percentage and amount columns to their corresponding activities in the next steps of our analysis.
 
 df.reset_index(drop=True, inplace=True) # this resets the index of the dataframe to be a simple range from 0 to n-1, where n is the number of rows in the dataframe. This is useful because we have skipped the first two rows of the original data, so the index may not be sequential. By resetting the index, we can ensure that it is clean and easy to work with. 
 #The drop=True argument tells pandas to drop the old index instead of adding it as a new column. The inplace=True argument tells pandas to modify the dataframe in place instead of returning a new dataframe.
 
 print("Column headers detected:")
-print("=" * 80) # separator line for better readability
-print(df.columns.tolist()) #it will show you the actual column names that we have in our dataframe after processing. 
-#This is important to check because we had to handle duplicate column names and make them unique. 
-# #By printing the column headers, we can verify that they are now unique and correctly reflect the structure of the data.
-# # This will also help us in the next steps when we need to map the percentage and amount columns to their corresponding activities. 
-# #If there are any issues with the column names, we can identify them at this stage and fix them before proceeding with the analysis.
-#.tolist is used to convert the pandas Index object (which is what df.columns returns) into a regular Python list. 
-# #This makes it easier to read and work with the column names.
+print("=" * 80) 
+print(df.columns.tolist())  
 print("=" * 80)
 
 # create mapping of each column to its activity
@@ -63,8 +54,7 @@ print("=" * 80)
 #the issue is that activity name is not reapted above eacy column, it often it appears like activity and the the next columns uare blank until the next activity appears. So we need to map each percentage/amount column to the correct activity by looking at the row above and filling in the blanks with the last non-empty activity name. This way we can create a mapping of each percentage/amount column to its corresponding activity, which will be crucial for our analysis later on when we want to unpivot the data and analyze it by activity.
 #so we need to map it like this {"percentage_1": "saring", "amount_1": "saring", "percentage_2": "another activity", "amount_2": "another activity", etc.}
 
-activity_mapping = {} # create a empty dictionary 
-# a dictionary is a data structure that stores key-value pairs. In this case, the key will be the column name (e.g., "percentage_1") and the value will be the corresponding activity name (e.g., "saring").
+activity_mapping = {} 
 
 for i, col_name in enumerate(column_headers_row):
 #now lopp through every column header, with its position.  Enumerate gives us both the index (i) and the column name (col_name) for each column in the column_headers_row. This will allow us to check if the column is a percentage or amount column, and then look up the corresponding activity name from the activity_names_row using the same index (i).
@@ -101,7 +91,7 @@ print("\nActivity Mapping:")
 print("=" * 80)
 for col, activity in activity_mapping.items():
     print(f"{col} -> {activity}")
-print("=" * 80) # print show me each mapping items
+print("=" * 80) 
 
 # Identify static columns
 static_cols = [] # Create an empty container (python list) to hold the names of the static columns. Static columns are those that contain information that does not change across the different activities, such as first name, last name, role, annual salary, etc. We want to identify these columns so that we can keep them as is when we unpivot the data later on. By checking for keywords like "first_name", "last_name", "role", "annual", and "sum_of" in the column names, we can determine which columns are likely to be static and should be included in this list.

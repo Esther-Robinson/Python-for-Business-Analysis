@@ -821,13 +821,13 @@
             </div>
             <div class="data-type-options">
                 <div class="data-type-card" data-type="salary" id="salaryCard">
-                    <div class="data-type-icon">👩‍🔬</div>
+                    <div class="data-type-icon"></div>
                     <h3>Employee QRES </h3>
                     <p>Process employee activity data including names, roles, percentages, and compensation amounts</p>
                     <div class="selection-checkmark">✓</div>
                 </div>
                 <div class="data-type-card" data-type="vendor" id="vendorCard">
-                    <div class="data-type-icon">🏢</div>
+                    <div class="data-type-icon"></div>
                     <h3>Vendor QRES</h3>
                     <p>Process vendor activity data including vendor names, activities, and associated costs</p>
                     <div class="selection-checkmark">✓</div>
@@ -838,14 +838,14 @@
         <!-- Instructions -->
         <div class="instructions-section">
             <div class="section-header">
-                <div class="section-icon">📋</div>
+                <div class="section-icon"></div>
                 <h2>How to Use This Tool</h2>
             </div>
             <div class="instructions-grid">
                 <div class="instruction-card">
                     <div class="instruction-number">1</div>
                     <h3>Prepare Your File</h3>
-                    <p>Ensure your Excel file has activity names in the first row, column headers in the second row, and data starting from the third row.</p>
+                    <p>Employee QRES data must be on a sheet named <strong>Staff_Wages</strong>; Vendor QRES data must be on a sheet named <strong>Vendor Verification</strong>. The tool will automatically locate the header row — no need to reformat the file.</p>
                 </div>
                 <div class="instruction-card">
                     <div class="instruction-number">2</div>
@@ -1111,7 +1111,11 @@
                 updateProgress(30);
                 
                 const workbook = XLSX.read(data, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
+                const targetSheet = selectedDataType === 'salary' ? 'Staff_Wages' : 'Vendor Verification';
+                const sheetName = workbook.SheetNames.find(n => n.trim() === targetSheet);
+                if (!sheetName) {
+                    throw new Error(`Sheet "${targetSheet}" not found in this file. Available sheets: ${workbook.SheetNames.join(', ')}`);
+                }
                 const worksheet = workbook.Sheets[sheetName];
                 
                 updateProgress(50);
@@ -1144,14 +1148,32 @@
             }
         }
 
+        // Find the row index that contains column headers (has "percentage" or "amount" cells).
+        // This lets the tool ignore title rows, blank rows, and other formatting above the real data.
+        function findHeaderRowIndex(rawData) {
+            for (let i = 0; i < rawData.length; i++) {
+                const row = rawData[i] || [];
+                const hasKeyword = row.some(cell => {
+                    const s = String(cell || '').toLowerCase().trim();
+                    return s.includes('percentage') || s.includes('percent') || s.includes('amount');
+                });
+                if (hasKeyword) return i;
+            }
+            return 1; // fallback to original assumption
+        }
+
         function processData(rawData) {
-            if (rawData.length < 3) {
-                throw new Error('File must have at least 3 rows (activity names, headers, and data)');
+            if (rawData.length < 2) {
+                throw new Error('Not enough rows found in the sheet.');
             }
 
-            const activityNamesRow = rawData[0];
-            const columnHeadersRow = rawData[1];
-            const dataRows = rawData.slice(2);
+            const headerRowIndex = findHeaderRowIndex(rawData);
+            const activityNamesRow = headerRowIndex > 0 ? (rawData[headerRowIndex - 1] || []) : rawData[0];
+            const columnHeadersRow = rawData[headerRowIndex];
+            // Filter out fully-empty rows that come after the header (common in formatted sheets)
+            const dataRows = rawData.slice(headerRowIndex + 1).filter(row =>
+                row && row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== '')
+            );
 
             // Make column headers unique
             const columns = [...columnHeadersRow];
